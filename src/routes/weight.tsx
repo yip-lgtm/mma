@@ -9,7 +9,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { analyzeBody } from "@/lib/analyze";
 import {
   HK_FOOD_CHIPS,
   SAMPLE_SCAN,
@@ -85,6 +84,12 @@ function WeightPage() {
       setBusy(false);
       return;
     }
+    if (import.meta.env.VITE_SPA === "1") {
+      setErr("GitHub Pages 冇伺服器。體能評級已即時顯示；完整飲食報告請用本機 npm run dev。");
+      setBusy(false);
+      return;
+    }
+    const { analyzeBody } = await import("@/lib/analyze");
     const result = await analyzeBody({
       data: {
         heightCm: profile.heightCm,
@@ -112,7 +117,10 @@ function WeightPage() {
           grade: gradeRun(r.meters),
         })),
       },
-    });
+    }).catch(() => ({
+      ok: false as const,
+      error: "靜態站冇伺服器，分析報告只喺本機 / 預覽可用。體能評級已即時顯示。",
+    }));
     setBusy(false);
     if (!result.ok) {
       setErr(result.error);

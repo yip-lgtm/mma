@@ -13,6 +13,12 @@ npm run dev
 
 然後開 [http://localhost:8080](http://localhost:8080)。資料存在瀏覽器，唔使登入。
 
+## GitHub Pages
+
+線上： [https://yip-lgtm.github.io/mma/](https://yip-lgtm.github.io/mma/)
+
+推 `main` 會自動部署。GitHub Pages 係靜態站，訓練／體重／9 分鐘跑可用；LLM 飲食報告要本機 `npm run dev`。
+
 ```bash
 npm run build
 npm run preview
