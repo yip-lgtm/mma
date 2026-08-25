@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #10110f;
+  --color-surface: #1a1b17;
+  --color-surface-2: #24251f;
+  --color-fg: #e8e4d8;
+  --color-muted: #9a978c;
+  --color-subtle: #6f6d64;
+  --color-accent: #c5c2b6;
+  --color-accent-foreground: #10110f;
+  --color-border: #2c2d26;
+  --color-ring: #8a937c;
+  --color-ok: #8a937c;
+  --color-warn: #c4a574;
+  --color-danger: #b45a4a;
+  --font-sans: "Noto Sans TC", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Noto Serif TC", "IBM Plex Serif", ui-serif, Georgia, serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  html,
+  body,
+  #app {
+    min-height: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
