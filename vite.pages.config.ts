@@ -8,7 +8,7 @@ const rootDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: resolve(rootDir, "spa"),
-  base: "/mma/",
+  base: process.env.BASE_PATH || "/",
   publicDir: resolve(rootDir, "public"),
   envDir: rootDir,
   plugins: [tailwindcss(), viteReact()],

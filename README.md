@@ -15,9 +15,9 @@ npm run dev
 
 ## GitHub Pages
 
-線上： [https://yip-lgtm.github.io/mma/](https://yip-lgtm.github.io/mma/)
+線上： [https://yip-lgtm.github.io/](https://yip-lgtm.github.io/)
 
-推 `main` 會自動部署。GitHub Pages 係靜態站，訓練／體重／9 分鐘跑可用；LLM 飲食報告要本機 `npm run dev`。
+推 `main` 會更新 `mma` 嘅 `gh-pages` 分支。GitHub Pages 係靜態站，訓練／體重／9 分鐘跑可用；LLM 飲食報告要本機 `npm run dev`。
 
 ```bash
 npm run build
