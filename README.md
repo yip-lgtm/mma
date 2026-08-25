@@ -5,11 +5,13 @@
 ## 本機
 
 ```bash
+git clone git@github.com:yip-lgtm/mma.git
+cd mma
 npm install
 npm run dev
 ```
 
-瀏覽器開開發伺服器。資料存在瀏覽器（localStorage），唔使登入。
+然後開 [http://localhost:8080](http://localhost:8080)。資料存在瀏覽器，唔使登入。
 
 ```bash
 npm run build
