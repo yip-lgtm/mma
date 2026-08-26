@@ -23,7 +23,6 @@ jobs:
           cache: npm
       - run: npm install
       - run: npm run build:pages
-        env:
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
