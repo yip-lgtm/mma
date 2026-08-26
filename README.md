@@ -80,59 +80,6 @@ node scripts/mock-llm.mjs &              # 9999 埠
 # → http://localhost:8080
 ```
 
-## 部署到 GitHub Pages（LLM 走 Worker proxy）
-
-GitHub Pages 純靜態，server function 跑唔到。要用 LLM 上傳 + 分析報告，要喺 Cloudflare 整個 proxy worker 持有 API key，瀏覽器直接打 worker。
-
-```
-[Browser] --POST--> [Cloudflare Worker] --bearer--> [OpenAI API]
-```
-
-### 1. Deploy worker
-
-```bash
-cd workers/openai-proxy
-npm install
-wrangler secret put OPENAI_API_KEY       # 貼你嘅 OpenAI key
-wrangler deploy                            # 拎到 https://openai-proxy.<acct>.workers.dev
-```
-
-可選：限制 CORS only 畀你個 origin：
-
-```bash
-wrangler secret put ALLOWED_ORIGIN
-# 輸入 https://yip-lgtm.github.io
-```
-
-### 2. SPA 端用 proxy
-
-```bash
-# Build 時設 VITE_LLM_PROXY_URL，Vite 會 bake 入 bundle
-VITE_LLM_PROXY_URL=https://openai-proxy.<acct>.workers.dev/v1/chat/completions \
-  npm run build:pages
-```
-
-`analyze.ts` 嘅 server function 喺靜態 build 唔會行 — `analyze-browser.ts` 鏡像直接 fetch 個 worker URL。Vite 會 tree-shake 走冇用嘅一邊（`VITE_LLM_PROXY_URL` 冇設就用 server function）。
-
-如果冇設 proxy URL 又 deploy 咗靜態版，UI 會出：
-> 靜態部署冇 LLM 後台。請設定 VITE_LLM_PROXY_URL（Cloudflare Worker）後重新 build，或用本機 `npm run dev`。
-
-### 3. 本地用 worker 試
-
-```bash
-# Terminal 1: mock LLM（扮 OpenAI）
-node scripts/mock-llm.mjs
-
-# Terminal 2: wrangler dev
-cd workers/openai-proxy
-npx wrangler dev    # 預設 .dev.vars 指去 localhost:9999
-
-# Terminal 3: dev with browser path
-VITE_LLM_PROXY_URL=http://127.0.0.1:8787/v1/chat/completions \
-  ./scripts/dev-with-proxy.sh
-```
-
-`./scripts/dev-with-proxy.sh` 已經設好 `VITE_LLM_PROXY_URL`，可以直接行。
 
 ## 體能評級（9 分鐘）
 

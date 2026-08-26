@@ -88,15 +88,6 @@ function WeightPage() {
     [scans],
   );
 
-  // When `VITE_LLM_PROXY_URL` is set (or in any non-dev build), the server
-  // functions in `@/lib/analyze` aren't reachable. The browser-side mirror
-  // in `@/lib/analyze-browser` POSTs directly to a Cloudflare Worker
-  // proxy that holds the OpenAI API key. Vite tree-shakes the unused
-  // branch when `VITE_LLM_PROXY_URL` is unset, so a plain `npm run dev`
-  // keeps using the server functions with no extra config.
-  const useBrowserLlm = Boolean(import.meta.env.VITE_LLM_PROXY_URL);
-  const isProd = import.meta.env.PROD;
-
   async function runReport() {
     if (busy) return;
     setBusy(true);
@@ -107,23 +98,31 @@ function WeightPage() {
       setBusy(false);
       return;
     }
-    if (isProd && !useBrowserLlm) {
-      setErr("靜態部署冇 LLM 後台。請設定 VITE_LLM_PROXY_URL（Cloudflare Worker）後重新 build，或用本機 npm run dev。");
+    if (import.meta.env.VITE_SPA === "1") {
+      setErr("GitHub Pages 冇伺服器。體能評級已即時顯示；完整飲食報告請用本機 npm run dev。");
       setBusy(false);
       return;
     }
-    let result;
-    if (useBrowserLlm) {
-      const { analyzeBodyBrowser } = await import("@/lib/analyze-browser");
-      result = await analyzeBodyBrowser({
+    const { analyzeBody } = await import("@/lib/analyze");
+    const result = await analyzeBody({
+      data: {
         heightCm: profile.heightCm,
         age: profile.age,
         boxingCeilingKg: PROFILE_DEFAULT.ceilingKg,
         boxingTargetKg: profile.targetKg,
         latest: last as unknown as Record<string, string | number>,
-        previous: prev ? (prev as unknown as Record<string, string | number>) : null,
-        foods: foods.slice(-40).map((f) => ({ date: f.date, meal: f.meal, text: f.text })),
-        sessions: sessions.slice(-14).map((s) => ({ date: s.date, name: s.name })),
+        previous: prev
+          ? (prev as unknown as Record<string, string | number>)
+          : null,
+        foods: foods.slice(-40).map((f) => ({
+          date: f.date,
+          meal: f.meal,
+          text: f.text,
+        })),
+        sessions: sessions.slice(-14).map((s) => ({
+          date: s.date,
+          name: s.name,
+        })),
         runs: runs.slice(-8).map((r) => ({
           date: r.date,
           meters: r.meters,
@@ -131,44 +130,11 @@ function WeightPage() {
           kmh: runKmh(r.meters),
           grade: gradeRun(r.meters),
         })),
-      }).catch(() => ({
-        ok: false as const,
-        error: "Proxy 連線失敗，請檢查 VITE_LLM_PROXY_URL 同 Cloudflare Worker 部署狀態。",
-      }));
-    } else {
-      const { analyzeBody } = await import("@/lib/analyze");
-      result = await analyzeBody({
-        data: {
-          heightCm: profile.heightCm,
-          age: profile.age,
-          boxingCeilingKg: PROFILE_DEFAULT.ceilingKg,
-          boxingTargetKg: profile.targetKg,
-          latest: last as unknown as Record<string, string | number>,
-          previous: prev
-            ? (prev as unknown as Record<string, string | number>)
-            : null,
-          foods: foods.slice(-40).map((f) => ({
-            date: f.date,
-            meal: f.meal,
-            text: f.text,
-          })),
-          sessions: sessions.slice(-14).map((s) => ({
-            date: s.date,
-            name: s.name,
-          })),
-          runs: runs.slice(-8).map((r) => ({
-            date: r.date,
-            meters: r.meters,
-            vo2: runVo2(r.meters),
-            kmh: runKmh(r.meters),
-            grade: gradeRun(r.meters),
-          })),
-        },
-      }).catch(() => ({
-        ok: false as const,
-        error: "靜態站冇伺服器，分析報告只喺本機 / 預覽可用。體能評級已即時顯示。",
-      }));
-    }
+      },
+    }).catch(() => ({
+      ok: false as const,
+      error: "靜態站冇伺服器，分析報告只喺本機 / 預覽可用。體能評級已即時顯示。",
+    }));
     setBusy(false);
     if (!result.ok) {
       setErr(result.error);
@@ -185,25 +151,17 @@ function WeightPage() {
     try {
       const img = await compressImageFile(file);
       setScanPreview(`data:${img.mimeType};base64,${img.base64}`);
-      let result;
-      if (useBrowserLlm) {
-        const { extractBodyScanFromImageBrowser } = await import("@/lib/analyze-browser");
-        result = await extractBodyScanFromImageBrowser({
-          imageBase64: img.base64,
-          mimeType: img.mimeType,
-        }).catch(() => ({
-          ok: false as const,
-          error: "Proxy 連線失敗，請檢查 VITE_LLM_PROXY_URL 同 Cloudflare Worker 部署狀態。",
-        }));
-      } else {
-        const { extractBodyScanFromImage } = await import("@/lib/analyze");
-        result = await extractBodyScanFromImage({
-          data: { imageBase64: img.base64, mimeType: img.mimeType },
-        }).catch(() => ({
-          ok: false as const,
-          error: "上傳失敗，請檢查網絡或稍後再試。",
-        }));
+      if (import.meta.env.VITE_SPA === "1") {
+        setScanErr("GitHub Pages 冇伺服器，上傳辨識要本機 npm run dev。");
+        return;
       }
+      const { extractBodyScanFromImage } = await import("@/lib/analyze");
+      const result = await extractBodyScanFromImage({
+        data: { imageBase64: img.base64, mimeType: img.mimeType },
+      }).catch(() => ({
+        ok: false as const,
+        error: "上傳失敗，請檢查網絡或稍後再試。",
+      }));
       if (!result.ok) {
         setScanErr(result.error);
         return;
@@ -232,26 +190,17 @@ function WeightPage() {
     setFoodErr(null);
     try {
       const img = await compressImageFile(file);
-      let result;
-      if (useBrowserLlm) {
-        const { identifyFoodFromImageBrowser } = await import("@/lib/analyze-browser");
-        result = await identifyFoodFromImageBrowser({
-          imageBase64: img.base64,
-          mimeType: img.mimeType,
-          meal,
-        }).catch(() => ({
-          ok: false as const,
-          error: "Proxy 連線失敗，請檢查 VITE_LLM_PROXY_URL 同 Cloudflare Worker 部署狀態。",
-        }));
-      } else {
-        const { identifyFoodFromImage } = await import("@/lib/analyze");
-        result = await identifyFoodFromImage({
-          data: { imageBase64: img.base64, mimeType: img.mimeType, meal },
-        }).catch(() => ({
-          ok: false as const,
-          error: "辨識失敗，請檢查網絡或稍後再試。",
-        }));
+      if (import.meta.env.VITE_SPA === "1") {
+        setFoodErr("GitHub Pages 冇伺服器，食物辨識要本機 npm run dev。");
+        return;
       }
+      const { identifyFoodFromImage } = await import("@/lib/analyze");
+      const result = await identifyFoodFromImage({
+        data: { imageBase64: img.base64, mimeType: img.mimeType, meal },
+      }).catch(() => ({
+        ok: false as const,
+        error: "辨識失敗，請檢查網絡或稍後再試。",
+      }));
       if (!result.ok) {
         setFoodErr(result.error);
         return;
@@ -271,25 +220,17 @@ function WeightPage() {
     try {
       const img = await compressImageFile(file);
       setRunPreview(`data:${img.mimeType};base64,${img.base64}`);
-      let result;
-      if (useBrowserLlm) {
-        const { extractRunFromImageBrowser } = await import("@/lib/analyze-browser");
-        result = await extractRunFromImageBrowser({
-          imageBase64: img.base64,
-          mimeType: img.mimeType,
-        }).catch(() => ({
-          ok: false as const,
-          error: "Proxy 連線失敗，請檢查 VITE_LLM_PROXY_URL 同 Cloudflare Worker 部署狀態。",
-        }));
-      } else {
-        const { extractRunFromImage } = await import("@/lib/analyze");
-        result = await extractRunFromImage({
-          data: { imageBase64: img.base64, mimeType: img.mimeType },
-        }).catch(() => ({
-          ok: false as const,
-          error: "辨識失敗，請檢查網絡或稍後再試。",
-        }));
+      if (import.meta.env.VITE_SPA === "1") {
+        setRunErr("GitHub Pages 冇伺服器，跑距辨識要本機 npm run dev。");
+        return;
       }
+      const { extractRunFromImage } = await import("@/lib/analyze");
+      const result = await extractRunFromImage({
+        data: { imageBase64: img.base64, mimeType: img.mimeType },
+      }).catch(() => ({
+        ok: false as const,
+        error: "辨識失敗，請檢查網絡或稍後再試。",
+      }));
       if (!result.ok) {
         setRunErr(result.error);
         return;

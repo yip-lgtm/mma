@@ -1,6 +1,0 @@
-node_modules
-.dev.vars
-.wrangler
-# dist is intentionally committed (prebuilt single-file bundle ready for
-# `curl -X PUT` deploy via Cloudflare API)
-!dist/
