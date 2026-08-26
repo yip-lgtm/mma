@@ -31,17 +31,17 @@ npm run preview
 - 康文署第一／第三個星期二改戶外徒手
 - 體脂磅記錄 + 飲食
 - 每週任一日 9 分鐘耐力跑（香港體適能協議）
-- 按掣出分析報告（需要 MiniMax API key）
+- 按掣出分析報告（需要 OpenAI API key）
 
 ## LLM 分析報告
 
-`/weight` →「產生今日報告」會打 MiniMax `MiniMax-Text-01` 出五段教練風格建議。`XAI_API_KEY` 已棄用，請改用：
+`/weight` →「產生今日報告」會打 OpenAI chat completion（`gpt-4o-mini` 預設）出五段教練風格建議。`XAI_API_KEY` / `MiniMax_API_KEY` 已棄用，請改用：
 
 | 環境變數 | 預設 | 用途 |
 | --- | --- | --- |
-| `MiniMax_API_KEY` | — | 必填。去 [platform.MiniMax.chat](https://platform.MiniMax.chat/user-center/basic-information/interface-key) 拎。 |
-| `MiniMax_BASE_URL` | `https://api.MiniMax.chat/v1` | 留空用官方；指去自家 proxy / mock 都可以。 |
-| `MiniMax_MODEL` | `MiniMax-Text-01` | 換做 `MiniMax-M1` 等推理型號。 |
+| `OPENAI_API_KEY` | — | 必填。去 [platform.openai.com](https://platform.openai.com/account/api-keys) 拎。 |
+| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | 留空用官方；指去自家 proxy / mock 都可以。 |
+| `OPENAI_MODEL` | `gpt-4o-mini` | 換做 `gpt-4o` 等更強 model。 |
 | `AUTO_GIT_PUSH` | `0` | 設成 `1` 就會喺報告生成後 `git push` 去 origin。 |
 | `GIT_AUTHOR_NAME` | `蝶刺 bot` | 自動 commit 用嘅 author name。 |
 | `GIT_AUTHOR_EMAIL` | `bot@dieci.local` | 自動 commit 用嘅 author email。 |
@@ -60,7 +60,7 @@ git remote set-url origin https://x-access-token:<PAT>@github.com/yip-lgtm/mma.g
 
 ### 視覺抽取（體脂磅 / 食物 / 跑距）
 
-`/weight` 嘅三個 section 都有 📷 上傳鈕，壓縮後直接打 MiniMax vision model：
+`/weight` 嘅三個 section 都有 📷 上傳鈕，壓縮後直接打 OpenAI vision-capable model：
 
 | 上傳 | 抽出 | Server function |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Mock 自動按 user text 路由 — 含「跑步／run／跑距／耐力」就�
 
 ```bash
 node scripts/mock-llm.mjs &              # 9999 埠
-./scripts/dev-with-mock.sh               # 自動指去 mock
+./scripts/dev-with-mock.sh               # 自動指去 mock (model: gpt-4o-mini)
 # → http://localhost:8080
 ```
 
@@ -85,16 +85,16 @@ node scripts/mock-llm.mjs &              # 9999 埠
 GitHub Pages 純靜態，server function 跑唔到。要用 LLM 上傳 + 分析報告，要喺 Cloudflare 整個 proxy worker 持有 API key，瀏覽器直接打 worker。
 
 ```
-[Browser] --POST--> [Cloudflare Worker] --bearer--> [MiniMax API]
+[Browser] --POST--> [Cloudflare Worker] --bearer--> [OpenAI API]
 ```
 
 ### 1. Deploy worker
 
 ```bash
-cd workers/minimax-proxy
+cd workers/openai-proxy
 npm install
-wrangler secret put MiniMax_API_KEY       # 貼你嘅 MiniMax key
-wrangler deploy                            # 拎到 https://minimax-proxy.<acct>.workers.dev
+wrangler secret put OPENAI_API_KEY       # 貼你嘅 OpenAI key
+wrangler deploy                            # 拎到 https://openai-proxy.<acct>.workers.dev
 ```
 
 可選：限制 CORS only 畀你個 origin：
@@ -108,7 +108,7 @@ wrangler secret put ALLOWED_ORIGIN
 
 ```bash
 # Build 時設 VITE_LLM_PROXY_URL，Vite 會 bake 入 bundle
-VITE_LLM_PROXY_URL=https://minimax-proxy.<acct>.workers.dev/v1/chat/completions \
+VITE_LLM_PROXY_URL=https://openai-proxy.<acct>.workers.dev/v1/chat/completions \
   npm run build:pages
 ```
 
@@ -120,11 +120,11 @@ VITE_LLM_PROXY_URL=https://minimax-proxy.<acct>.workers.dev/v1/chat/completions 
 ### 3. 本地用 worker 試
 
 ```bash
-# Terminal 1: mock LLM（扮 MiniMax）
+# Terminal 1: mock LLM（扮 OpenAI）
 node scripts/mock-llm.mjs
 
 # Terminal 2: wrangler dev
-cd workers/minimax-proxy
+cd workers/openai-proxy
 npx wrangler dev    # 預設 .dev.vars 指去 localhost:9999
 
 # Terminal 3: dev with browser path

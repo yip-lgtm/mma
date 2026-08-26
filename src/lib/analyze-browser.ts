@@ -1,11 +1,11 @@
 /**
  * Browser-side LLM helpers. Used when the app is deployed as a static SPA
  * (e.g. GitHub Pages) and `VITE_LLM_PROXY_URL` is set. The proxy is expected
- * to be a thin bearer-auth shim in front of MiniMax (see
- * `workers/minimax-proxy/`).
+ * to be a thin bearer-auth shim in front of OpenAI (see
+ * `workers/openai-proxy/`).
  *
  * In dev (`npm run dev`) the server functions in `./analyze` are used
- * instead, which can talk to MiniMax directly with the env-supplied key.
+ * instead, which can talk to OpenAI directly with the env-supplied key.
  */
 
 const PROXY_URL = import.meta.env.VITE_LLM_PROXY_URL ?? "";
@@ -35,7 +35,7 @@ export async function chatCompletionBrowser(
   const res = await fetch(PROXY_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    // Mirror the server-side `chatCompletion` body shape: the proxy/MiniMax
+    // Mirror the server-side `chatCompletion` body shape: the proxy/OpenAI
     // expect `response_format: {type:"json_object"}` to opt into JSON mode,
     // not a flat `json: true`.
     body: JSON.stringify({

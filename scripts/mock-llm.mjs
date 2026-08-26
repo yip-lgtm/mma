@@ -5,7 +5,7 @@
 // realistic without burning real API credits.
 //
 // Run: node scripts/mock-llm.mjs
-// Then: MiniMax_BASE_URL=http://localhost:9999/v1 npm run dev
+// Then: OPENAI_BASE_URL=http://localhost:9999/v1 npm run dev
 import { createServer } from "node:http";
 
 const PORT = Number.parseInt(process.env.PORT ?? "9999", 10);
@@ -89,7 +89,7 @@ function buildReply(payload) {
   if (jsonMode) return JSON.stringify({ reflection: TAG });
 
   // Plain text analyze: echo a fake report with the right structure.
-  return `## 測試報告 (${TAG})\n\n模型: ${payload.model ?? "MiniMax-Text-01"}\n時間: ${new Date().toISOString()}\n\n1) 而家狀態：${TAG}\n2) 同拳擊 55kg 目標的關係：${TAG}\n3) 飲食評價同明日三個具體食法：${TAG}\n4) 9分鐘跑體能：${TAG}\n5) 訓練調整：${TAG}`;
+  return `## 測試報告 (${TAG})\n\n模型: ${payload.model ?? "gpt-4o-mini"}\n時間: ${new Date().toISOString()}\n\n1) 而家狀態：${TAG}\n2) 同拳擊 55kg 目標的關係：${TAG}\n3) 飲食評價同明日三個具體食法：${TAG}\n4) 9分鐘跑體能：${TAG}\n5) 訓練調整：${TAG}`;
 }
 
 const server = createServer((req, res) => {
@@ -120,7 +120,7 @@ const server = createServer((req, res) => {
       const reply = {
         id: "mock-1",
         object: "chat.completion",
-        model: payload.model ?? "MiniMax-Text-01",
+        model: payload.model ?? "gpt-4o-mini",
         choices: [
           {
             index: 0,

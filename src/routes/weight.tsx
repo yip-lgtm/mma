@@ -91,7 +91,7 @@ function WeightPage() {
   // When `VITE_LLM_PROXY_URL` is set (or in any non-dev build), the server
   // functions in `@/lib/analyze` aren't reachable. The browser-side mirror
   // in `@/lib/analyze-browser` POSTs directly to a Cloudflare Worker
-  // proxy that holds the MiniMax API key. Vite tree-shakes the unused
+  // proxy that holds the OpenAI API key. Vite tree-shakes the unused
   // branch when `VITE_LLM_PROXY_URL` is unset, so a plain `npm run dev`
   // keeps using the server functions with no extra config.
   const useBrowserLlm = Boolean(import.meta.env.VITE_LLM_PROXY_URL);
@@ -401,7 +401,7 @@ function WeightPage() {
       <Card className="mt-4">
         <h2 className="font-display text-xl">記入體脂磅</h2>
         <p className="mt-1 text-sm text-muted">
-          對住磅上數字填，或者直接 upload 截圖叫 MiniMax 自動抽。已預載你張圖（57.67 kg）。改完撳保存。
+          對住磅上數字填，或者直接 upload 截圖叫 AI 自動抽。已預載你張圖（57.67 kg）。改完撳保存。
         </p>
         <div className="mt-3 flex items-center gap-2">
           <input

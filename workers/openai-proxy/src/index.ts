@@ -1,26 +1,26 @@
 /**
- * Cloudflare Worker that proxies chat-completion requests to MiniMax.
+ * Cloudflare Worker that proxies chat-completion requests to OpenAI.
  *
- *  [Browser] --POST--> [Worker] --bearer--> [MiniMax API]
- *   (no key)         (holds key)        (api.MiniMax.chat)
+ *  [Browser] --POST--> [Worker] --bearer--> [OpenAI API]
+ *   (no key)         (holds key)        (api.openai.com)
  *
  * Deploy:
- *   cd workers/minimax-proxy
+ *   cd workers/openai-proxy
  *   npm install
- *   wrangler secret put MiniMax_API_KEY
+ *   wrangler secret put OPENAI_API_KEY
  *   wrangler deploy
  *
  * Configure the SPA by setting `VITE_LLM_PROXY_URL` to the deployed worker URL
- * (e.g. https://MiniMax-proxy.<account>.workers.dev) at build time.
+ * (e.g. https://openai-proxy.<account>.workers.dev) at build time.
  */
 
 interface Env {
-  /** MiniMax API key. Set via `wrangler secret put MiniMax_API_KEY`. */
-  MiniMax_API_KEY: string;
+  /** OpenAI API key. Set via `wrangler secret put OPENAI_API_KEY`. */
+  OPENAI_API_KEY: string;
   /** Origin to allow via CORS. Defaults to the request's Origin, "*" if absent. */
   ALLOWED_ORIGIN?: string;
   /** Upstream chat-completions URL. Override in `.dev.vars` for local mocks. */
-  MiniMax_BASE_URL?: string;
+  OPENAI_BASE_URL?: string;
 }
 
 function corsHeaders(origin: string): Record<string, string> {
@@ -60,12 +60,12 @@ export default {
       return jsonError("method not allowed", 405, origin);
     }
 
-    if (!env.MiniMax_API_KEY) {
-      return jsonError("MiniMax_API_KEY not configured on the worker", 500, origin);
+    if (!env.OPENAI_API_KEY) {
+      return jsonError("OPENAI_API_KEY not configured on the worker", 500, origin);
     }
 
     const body = await req.text();
-    const upstreamUrl = env.MiniMax_BASE_URL ?? "https://api.MiniMax.chat/v1/chat/completions";
+    const upstreamUrl = env.OPENAI_BASE_URL ?? "https://api.openai.com/v1/chat/completions";
 
     let upstream: Response;
     try {
@@ -73,7 +73,7 @@ export default {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${env.MiniMax_API_KEY}`,
+          Authorization: `Bearer ${env.OPENAI_API_KEY}`,
         },
         body,
       });

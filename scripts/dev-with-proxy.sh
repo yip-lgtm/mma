@@ -1,5 +1,5 @@
 #!/bin/bash
-# Dev with the browser→Worker→MiniMax flow. Set VITE_LLM_PROXY_URL (and
+# Dev with the browser→Worker→OpenAI flow. Set VITE_LLM_PROXY_URL (and
 # optionally run wrangler dev upstream) to exercise the proxy path in
 # development — without doing a static build.
 cd "$(dirname "$0")/.."
