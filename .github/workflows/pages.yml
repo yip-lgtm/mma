@@ -25,6 +25,11 @@ jobs:
       - run: npm run build:pages
         env:
           BASE_PATH: /mma/
+          # Set the repo secret LLM_PROXY_URL to your Cloudflare Worker URL
+          # (e.g. https://minimax-proxy.<acct>.workers.dev/v1/chat/completions)
+          # to enable vision upload + analyze report on the static deploy.
+          # Without it the LLM features show a "no backend" message.
+          VITE_LLM_PROXY_URL: ${{ secrets.LLM_PROXY_URL }}
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
