@@ -1,0 +1,5 @@
+# Local development overrides for `wrangler dev`. Copy to .dev.vars and fill
+# in real values. .dev.vars is gitignored.
+MiniMax_API_KEY=
+MiniMax_BASE_URL=http://127.0.0.1:9999/v1/chat/completions
+ALLOWED_ORIGIN=http://localhost:8080

@@ -22,3 +22,7 @@ AGENTS.project.md
 *.log
 .cache/
 coverage/
+
+# Test fixtures (not part of the build)
+test-*.png
+test-*.jpg

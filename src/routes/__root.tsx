@@ -12,7 +12,9 @@ const APP_NAME = "蝶刺";
 const asset = (path: string) =>
   `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
 
-const spa = import.meta.env.VITE_SPA === "1";
+// In a static SPA build the bundler inlines all scripts — `<Scripts />` is
+// redundant and confuses hydration. In dev we always need it so HMR works.
+const isStaticBuild = import.meta.env.PROD;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -49,7 +51,7 @@ function RootShell() {
       </AuthProvider>
     </>
   );
-  if (spa) return inner;
+  if (isStaticBuild) return inner;
   return (
     <html lang="zh-HK" className="antialiased" suppressHydrationWarning>
       <head>
