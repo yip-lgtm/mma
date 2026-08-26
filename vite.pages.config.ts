@@ -6,14 +6,14 @@ import { defineConfig } from "vite";
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 
-// The SPA is served at https://<user>.github.io/<repo>/ — i.e. the
-// project-page subpath. We build into `.output/public/<repo>/` and drop a
-// meta-refresh `index.html` at the publish root that redirects visitors
-// to that subpath. Asset URLs in the SPA use relative paths (default
-// base) so they resolve correctly under the subpath.
+// Static SPA build for GitHub Pages. Project pages serve the repo root
+// at BOTH `/<repo>/` and `/`, so we keep the SPA's `index.html` at the
+// publish root and use relative asset paths so it works at either URL.
+// `BASE_PATH` is intentionally not consulted here — set it to anything
+// other than `./` and the assets will 404 under one of the two URLs.
 export default defineConfig({
   root: resolve(rootDir, "spa"),
-  base: process.env.BASE_PATH || "./",
+  base: "./",
   publicDir: resolve(rootDir, "public"),
   envDir: rootDir,
   plugins: [tailwindcss(), viteReact()],
@@ -24,7 +24,7 @@ export default defineConfig({
     "import.meta.env.VITE_SPA": JSON.stringify("1"),
   },
   build: {
-    outDir: resolve(rootDir, ".output/public/mma"),
+    outDir: resolve(rootDir, ".output/public"),
     emptyOutDir: true,
     assetsDir: "assets",
   },
