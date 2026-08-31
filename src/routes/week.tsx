@@ -3,6 +3,7 @@ import { Shell } from "@/components/shell";
 import { Card } from "@/components/ui/card";
 import { DAYS, totalSeconds } from "@/lib/program";
 import { CHAO_COMMENT } from "@/lib/chao-comment";
+import { THURSDAY_DAY } from "@/lib/thursday-day";
 import { formatClock, weekdayHkt } from "@/lib/utils";
 
 export const Route = createFileRoute("/week")({ component: WeekPage });
@@ -17,7 +18,7 @@ function WeekPage() {
     <Shell>
       <h1 className="font-display text-3xl">七日前移</h1>
       <p className="mt-2 text-sm text-muted">
-        每日 30 分鐘：前段外圍技術，後段塑形。星期四取消有氧，改環繞／Pivot／刺拳。守 55 kg 以下。
+        每日 30 分鐘：前段外圍技術，後段塑形。星期四取消有氧，改環繞／Pivot／刺拳。
       </p>
       <Card className="mt-5">
         <p className="text-xs text-muted">超哥訓勉</p>
@@ -28,7 +29,7 @@ function WeekPage() {
       </Card>
       <div className="mt-6 space-y-3">
         {ORDER.map((id, i) => {
-          const day = DAYS.find((d) => d.id === id)!;
+          const day = id === 4 ? THURSDAY_DAY : DAYS.find((d) => d.id === id)!;
           const active = wd === id;
           return (
             <Card
@@ -51,7 +52,7 @@ function WeekPage() {
               </p>
               <ol className="mt-3 space-y-1.5 border-t border-border pt-3">
                 {day.blocks
-                  .filter((b) => b.kind !== "rest" && !b.label.startsWith("引體") && !b.label.startsWith("胸") && !b.label.startsWith("二頭") && !b.label.startsWith("腹"))
+                  .filter((b) => b.kind !== "rest")
                   .slice(0, 5)
                   .map((b) => (
                     <li key={b.label} className="text-sm text-muted">
