@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Clock, MapPin } from "lucide-react";
+import { ArrowRight, Clock, MapPin, StickyNote, X } from "lucide-react";
+import { useState } from "react";
 import { Shell } from "@/components/shell";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/")({ component: Home });
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
 function Home() {
+  const [notesOpen, setNotesOpen] = useState(false);
   const closed = isLcsdClosed();
   const wd = weekdayHkt();
   const day = closed ? CLOSED_ALT : dayByWeekday(wd);
@@ -61,6 +63,18 @@ function Home() {
           <p className="font-display text-2xl tabular-nums">{streak}</p>
         </div>
       </header>
+
+      <button
+        type="button"
+        onClick={() => setNotesOpen(true)}
+        className="mb-4 inline-flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-3 text-left text-sm transition active:scale-[0.99]"
+      >
+        <span className="flex items-center gap-2 font-medium">
+          <StickyNote className="size-4 text-accent" />
+          📋 場地備註
+        </span>
+        <span className="text-xs text-subtle">{LCSD_NOTES.length} 條 · 點開睇</span>
+      </button>
 
       {closed ? (
         <Card className="mb-4 border-warn/40">
@@ -171,7 +185,54 @@ function Home() {
           ))}
         </ul>
       </Card>
+
+      {notesOpen ? <NotesModal onClose={() => setNotesOpen(false)} /> : null}
     </Shell>
+  );
+}
+
+function NotesModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-3 pb-3 pt-12 backdrop-blur-sm sm:items-center sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="場地備註"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-bg shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-border bg-surface px-5 py-3">
+          <h2 className="flex items-center gap-2 font-display text-lg">
+            <StickyNote className="size-4 text-accent" />
+            場地備註
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1 text-muted transition hover:bg-surface-2"
+            aria-label="關閉"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <ol className="max-h-[70dvh] space-y-3 overflow-y-auto px-5 py-4 text-sm leading-relaxed">
+          {LCSD_NOTES.map((n, i) => (
+            <li key={i} className="flex gap-3 text-muted">
+              <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs tabular-nums text-fg">
+                {i + 1}
+              </span>
+              <span className="flex-1">{n}</span>
+            </li>
+          ))}
+        </ol>
+        <div className="border-t border-border bg-surface px-5 py-3 text-center text-xs text-subtle">
+          撳空白處或 ✕ 關閉
+        </div>
+      </div>
+    </div>
   );
 }
 
