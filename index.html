@@ -1,178 +1,23 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<meta name="theme-color" content="#000000"/>
-<title>outboxing stance</title>
-<style>
-  :root{ --bg:#000; --fg:#fff; --muted:#9a9a9a; --line:#2a2a2a; --card:#0d0d0d; }
-  *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang HK",sans-serif;min-height:100%}
-  .wrap{max-width:720px;margin:0 auto;padding:20px 16px 96px}
-  header.top{margin-bottom:20px}
-  .kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
-  h1{font-size:34px;margin:6px 0 8px;font-weight:700;letter-spacing:-.03em}
-  .sub{font-size:14px;color:#ddd;line-height:1.5}
-  .thanks{font-size:12px;color:var(--muted);margin-top:4px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
-  h2{font-size:20px;margin:0 0 8px}
-  h3{font-size:15px;margin:0 0 6px}
-  p,li{color:#cfcfcf;font-size:14px;line-height:1.55}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-  input,textarea,select{width:100%;background:#111;color:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:15px}
-  button{border:0;border-radius:10px;padding:11px 14px;font-size:14px;background:#fff;color:#000;font-weight:600;cursor:pointer}
-  button.ghost{background:#161616;color:#fff;border:1px solid var(--line)}
-  button.tiny{padding:7px 10px;font-size:12px}
-  .muted{color:var(--muted)}
-  nav.bottom{position:fixed;left:0;right:0;bottom:0;background:#000;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 0 calc(8px + env(safe-area-inset-bottom))}
-  nav.bottom a{text-align:center;text-decoration:none;color:#888;font-size:11px;padding:8px 0}
-  nav.bottom a.on{color:#fff}
-  .gif{height:86px;border:1px solid var(--line);border-radius:10px;margin:8px 0;overflow:hidden;background:#080808;position:relative}
-  .dot{width:10px;height:10px;border-radius:50%;background:#fff;position:absolute}
-  pre{white-space:pre-wrap;font-size:13px;line-height:1.5;color:#eee}
-  .yt a{display:block;color:#ddd;font-size:13px;margin:6px 0}
-  .stat{background:#111;border:1px solid var(--line);border-radius:10px;padding:10px}
-  .stat b{display:block;font-size:18px;margin-top:4px}
-</style>
-</head>
-<body>
-<div class="wrap" id="app"></div>
-<nav class="bottom">
-  <a href="#/" data-r="/">今日</a>
-  <a href="#/week" data-r="/week">週期</a>
-  <a href="#/weight" data-r="/weight">體重</a>
-  <a href="#/skills" data-r="/skills">技術</a>
-</nav>
-<script>
-const SUB = "練拳不練功到老一場空";
-const THANKS = "（特別嗚謝 超哥）";
-const LS = "outbox.v3";
-const KEYS = { or:"outbox.openrouter", gh:"outbox.github" };
-const YTS = ["https://youtube.com/shorts/qpgtrzJpSIE","https://youtube.com/shorts/9g8fGj_fO_g","https://youtube.com/shorts/8tTcdROhKk4","https://youtube.com/shorts/sJbZVqZc7KA","https://youtube.com/shorts/dDMEsWZW6yg"];
-function today(){ return new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Hong_Kong"}); }
-function load(){ try{ return JSON.parse(localStorage.getItem(LS)||"{}"); }catch(e){ return {}; } }
-function save(d){ localStorage.setItem(LS, JSON.stringify(d)); autoPush(); }
-function data(){
-  const raw = load();
-  return Object.assign({scans:[],foods:[],reports:[],runs:[],profile:{height:"",target:""}}, raw, { profile: Object.assign({height:"",target:""}, raw.profile||{}) });
-}
-function profileLine(d){
-  const h = d.profile.height, t = d.profile.target;
-  if(!h && !t) return "未填身高／目標";
-  return [h? h+" cm":"", t? "目標 "+t+" kg":""].filter(Boolean).join(" · ");
-}
-function header(){
-  return `<header class="top"><div class="kicker">LCSD · 30 MIN · OUTBOXING STANCE</div><h1>outboxing stance</h1><div class="sub">${SUB}</div><div class="thanks">${THANKS}</div></header>`;
-}
-function pageToday(){
-  const d = data(); const last = d.scans.at(-1);
-  return header()+`<div class="card"><h2>今日課 · 30 分鐘</h2><p>外圍移動 + 背／胸／二頭／腹 + 2合1 大腿（超哥深蹲 + 保加利亞蹲）。</p><p class="muted">康文署健身室。細動作、唔出聲。跟住超哥系列做，保證唔翻車。</p></div>
-  <div class="grid4"><div class="stat"><span class="muted">背</span><b>引體</b></div><div class="stat"><span class="muted">胸</span><b>伏地</b></div><div class="stat"><span class="muted">二頭</span><b>彎舉</b></div><div class="stat"><span class="muted">腹</span><b>捲腹</b></div></div>
-  <div class="card"><h3>2合1 大腿</h3><p>超哥深蹲 + 單腳保加利亞蹲。每邊 8–12 下，2 組。</p></div>
-  <div class="card"><h3>飲食（超哥 style）</h3><p>練完立即食小米粥。小米健脾，脾主肌肉及統血。</p></div>
-  <div class="card yt"><h3>每日健身系列</h3>${YTS.map((u,i)=>`<a href="${u}" target="_blank" rel="noopener">Short ${i+1}</a>`).join("")}</div>
-  <div class="card"><p>晨秤 ${last? last.kg+" kg · 體脂 "+last.fat+"%":"—"} · ${profileLine(d)}</p></div>`;
-}
-function pageWeek(){
-  return header()+`<div class="card"><h2>週期</h2><p>日恢復 · 一速度 · 二旋轉 · 三單腳 · 四有氧 · 五刺拳 · 六移動</p><p>每週任一日加 9 分鐘耐力跑，唔取代主課。</p></div>
-  <div class="card"><h3>記 9 分鐘跑距離（km）</h3><div class="row"><input id="runkm" inputmode="decimal" placeholder="1.85"/><button onclick="logRun()">記入</button></div><div id="runlist"></div></div>`;
-}
-function pageWeight(){
-  const d = data(); const last = d.scans.at(-1); const foods = d.foods.filter(f=>f.date===today());
-  return header()+`<div class="card"><h2>體重 · 飲食</h2>
-    <div class="grid2" style="margin-top:10px">
-      <label class="muted">身高 cm<input id="height" inputmode="decimal" placeholder="cm" value="${d.profile.height||""}"></label>
-      <label class="muted">目標 kg<input id="target" inputmode="decimal" placeholder="kg" value="${d.profile.target||""}"></label>
-    </div>
-    <button class="ghost" style="margin-top:10px;width:100%" onclick="saveProfile()">保存身高／目標</button>
-    <p id="profmsg" class="muted">${profileLine(d)}</p>
-    ${last?`<div class="grid4" style="margin-top:10px"><div class="stat"><span class="muted">體重</span><b>${last.kg}</b></div><div class="stat"><span class="muted">體脂</span><b>${last.fat}%</b></div><div class="stat"><span class="muted">肌肉</span><b>${last.muscle}</b></div><div class="stat"><span class="muted">BMR</span><b>${last.bmr}</b></div></div>`:""}
-  </div>
-  <div class="card"><h3>記入體脂磅</h3><div class="grid2">
-      <label class="muted">體重<input id="kg" inputmode="decimal" value="${last?last.kg:""}"></label>
-      <label class="muted">體脂 %<input id="fat" inputmode="decimal" value="${last?last.fat:""}"></label>
-      <label class="muted">肌肉 kg<input id="muscle" inputmode="decimal" value="${last?last.muscle:""}"></label>
-      <label class="muted">BMR<input id="bmr" inputmode="decimal" value="${last?last.bmr:""}"></label>
-    </div>
-    <button style="margin-top:10px;width:100%" onclick="saveScan()">保存今日磅數</button><p id="scanmsg" class="muted"></p></div>
-  <div class="card"><h3>今日已吃</h3><div class="row"><select id="meal"><option>早</option><option selected>午</option><option>晚</option><option>加</option></select><input id="food" placeholder="例如：小米粥"/><button onclick="addFood()">加入</button></div>
-    <div class="row" style="margin-top:8px">${["小米粥","白切雞","白飯半碗","菜心","蛋"].map(c=>`<button class="ghost tiny" onclick="chipFood('${c}')">${c}</button>`).join("")}</div>
-    <ul>${foods.length?foods.map(f=>`<li>${f.meal} ${f.text}</li>`).join(""):"<li class='muted'>未記</li>"}</ul></div>
-  <div class="card"><h3>分析報告 · OpenRouter MiniMax M3</h3>
-    <label class="muted">OpenRouter key<input id="orkey" type="password" placeholder="sk-or-..." value="${localStorage.getItem(KEYS.or)||""}"></label>
-    <button style="margin-top:10px;width:100%" onclick="runLLM()">產生今日報告</button><p id="llmsg" class="muted"></p><pre id="report">${d.reports[0]?d.reports[0].text:""}</pre></div>
-  <div class="card"><h3>自動備份</h3><p class="muted">Token 只存呢部手機，保存後會 push 去 yip-lgtm/yipmma-data。</p>
-    <label class="muted">GitHub token（contents:write）<input id="ghtoken" type="password" placeholder="ghp_..." value="${localStorage.getItem(KEYS.gh)||""}"></label>
-    <div class="row" style="margin-top:8px"><button class="ghost" onclick="saveTokens()">儲存 token</button><button class="ghost" onclick="autoPush(true)">立即 push</button></div><p id="bkmsg" class="muted"></p></div>`;
-}
-function pageSkills(){
-  const skills = [["外圍架勢","可隨時移動，唔鎖死。","stance"],["刺拳","測距、斷節奏、開路。","jab"],["Pivot 轉角","前腳為軸，後腳划弧。","pivot"],["簡化滑步","Ali shuffle 實用版。","shuffle"],["頭同距離","後仰來自髟同後腳。","slip"],["環繞節奏","向對手弱手外側移動。","circle"]];
-  return header()+`<div class="card"><h2>技術</h2><p>阿里早期／洛馬琴科共同點：可隨時移動，唔鎖死。</p></div>${skills.map(([t,b,k])=>`<div class="card"><h3>${t}</h3><div class="gif" id="g-${k}"></div><p>${b}</p></div>`).join("")}`;
-}
-function render(){
-  const hash = (location.hash.replace("#","")||"/");
-  document.getElementById("app").innerHTML = ({ "/":pageToday,"/week":pageWeek,"/weight":pageWeight,"/skills":pageSkills }[hash]||pageToday)();
-  document.querySelectorAll("nav.bottom a").forEach(a=>a.classList.toggle("on", a.dataset.r===hash));
-  if(hash==="/week") drawRuns();
-  if(hash==="/skills") animSkills();
-}
-function saveProfile(){
-  const d = data();
-  d.profile.height = (document.getElementById("height").value||"").trim();
-  d.profile.target = (document.getElementById("target").value||"").trim();
-  save(d); document.getElementById("profmsg").textContent = "已保存 · "+profileLine(d);
-}
-function saveScan(){
-  const d = data();
-  const scan = {date:today(), kg:+document.getElementById("kg").value, fat:+document.getElementById("fat").value, muscle:+document.getElementById("muscle").value, bmr:+document.getElementById("bmr").value};
-  d.scans = d.scans.filter(s=>s.date!==today()).concat([scan]); save(d); render();
-}
-function addFood(){ const t=document.getElementById("food").value.trim(); if(!t) return; const d=data(); d.foods.push({date:today(), meal:document.getElementById("meal").value, text:t, at:Date.now()}); save(d); render(); }
-function chipFood(t){ const d=data(); d.foods.push({date:today(), meal:(document.getElementById("meal")||{value:"午"}).value, text:t, at:Date.now()}); save(d); render(); }
-function logRun(){ const km=+document.getElementById("runkm").value; if(!km) return; const d=data(); d.runs.push({date:today(), meters:Math.round(km*1000)}); save(d); drawRuns(); }
-function drawRuns(){ const el=document.getElementById("runlist"); if(!el) return; const d=data(); el.innerHTML=d.runs.slice(-8).reverse().map(r=>`<p>${r.date} · ${(r.meters/1000).toFixed(2)} km</p>`).join("")||"<p class='muted'>未測</p>"; }
-function saveTokens(){
-  const or=document.getElementById("orkey")?.value.trim()||""; const gh=document.getElementById("ghtoken")?.value.trim()||"";
-  if(or) localStorage.setItem(KEYS.or, or); else localStorage.removeItem(KEYS.or);
-  if(gh) localStorage.setItem(KEYS.gh, gh); else localStorage.removeItem(KEYS.gh);
-  const m=document.getElementById("bkmsg"); if(m) m.textContent="token 已存呢部手機";
-}
-async function runLLM(){
-  saveTokens(); const key=localStorage.getItem(KEYS.or); const msg=document.getElementById("llmsg"); const box=document.getElementById("report");
-  if(!key){ msg.textContent="先填 OpenRouter key"; return; }
-  const d=data(); const last=d.scans.at(-1); if(!last){ msg.textContent="先記入體脂磅"; return; }
-  msg.textContent="分析中…";
-  const prompt=`你係外圍拳擊自學教練。身高 ${d.profile.height||"未填"}cm，目標 ${d.profile.target||"未填"}kg。今日磅：${JSON.stringify(last)}。食物：${JSON.stringify(d.foods.filter(f=>f.date===today()))}。跑：${JSON.stringify(d.runs.slice(-3))}。用粵語短報告。`;
-  try{
-    const res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://yip-lgtm.github.io/mma/","X-Title":"outboxing stance"},body:JSON.stringify({model:"minimax/minimax-m3:free",messages:[{role:"user",content:prompt}]})});
-    const j=await res.json(); const text=j.choices?.[0]?.message?.content||JSON.stringify(j);
-    d.reports.unshift({date:today(), text, at:Date.now()}); save(d); box.textContent=text; msg.textContent="完成";
-  }catch(e){ msg.textContent="失敗："+e.message; }
-}
-async function autoPush(manual){
-  const token=localStorage.getItem(KEYS.gh); const m=document.getElementById("bkmsg");
-  if(!token){ if(manual && m) m.textContent="未填 GitHub token"; return; }
-  const content=btoa(unescape(encodeURIComponent(JSON.stringify(data(),null,2))));
-  const api="https://api.github.com/repos/yip-lgtm/yipmma-data/contents/backup/"+today()+".json";
-  try{
-    let sha; const get=await fetch(api,{headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json"}}); if(get.ok) sha=(await get.json()).sha;
-    const put=await fetch(api,{method:"PUT",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify({message:"backup "+today(),content,sha,branch:"main"})});
-    if(m) m.textContent=put.ok?"已 push 去 yipmma-data":"push 失敗 "+put.status;
-  }catch(e){ if(m) m.textContent="push 失敗 "+e.message; }
-}
-function animSkills(){
-  const draw={ stance(el){el.innerHTML=`<div class="dot" style="left:30%;top:60%"></div><div class="dot" style="left:58%;top:68%"></div>`;},
-    jab(el){el.innerHTML=`<div class="dot" id="jb" style="left:28%;top:50%"></div>`; const d=el.querySelector("#jb"); let t=0; setInterval(()=>{t=(t+1)%40;d.style.left=(28+Math.min(t,20)*1.6)+"%";},80);},
-    pivot(el){el.innerHTML=`<div class="dot" id="pv" style="left:50%;top:50%"></div>`; const d=el.querySelector("#pv"); let a=0; setInterval(()=>{a+=8;d.style.left=(50+Math.cos(a*Math.PI/180)*28)+"%";d.style.top=(50+Math.sin(a*Math.PI/180)*28)+"%";},70);},
-    shuffle(el){el.innerHTML=`<div class="dot" id="s1" style="top:62%"></div><div class="dot" id="s2" style="top:62%"></div>`; let t=0; setInterval(()=>{t+=1;const x=30+Math.sin(t/6)*18;el.querySelector("#s1").style.left=x+"%";el.querySelector("#s2").style.left=(x+16)+"%";},60);},
-    slip(el){el.innerHTML=`<div class="dot" id="hd" style="left:48%;top:30%"></div>`; let t=0; setInterval(()=>{t+=1;el.querySelector("#hd").style.left=(48+Math.sin(t/8)*12)+"%";},50);},
-    circle(el){el.innerHTML=`<div class="dot" id="cr" style="left:50%;top:50%"></div>`; let a=0; setInterval(()=>{a+=6;el.querySelector("#cr").style.left=(50+Math.cos(a*Math.PI/180)*30)+"%";el.querySelector("#cr").style.top=(50+Math.sin(a*Math.PI/180)*18)+"%";},70);} };
-  Object.keys(draw).forEach(k=>{ const el=document.getElementById("g-"+k); if(el) draw[k](el); });
-}
-window.addEventListener("hashchange", render); render();
-</script>
-</body>
+<!doctype html>
+<html lang="zh-HK" class="antialiased">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>蝶刺</title>
+    <meta
+      name="description"
+      content="康文署 30 分鐘外圍拳擊自學：技術移動、體能、體重控制。"
+    />
+    <meta name="theme-color" content="#10110f" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@500;600&display=swap"
+    />
+    <script type="module" crossorigin src="./assets/index-M2EZCbNq.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CrK_IBj5.css">
+  </head>
+  <body class="bg-bg text-fg">
+    <div id="root"></div>
+  </body>
 </html>
