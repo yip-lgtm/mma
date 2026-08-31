@@ -12,6 +12,7 @@ import {
   SCULPT_SUMMARY,
   totalSeconds,
 } from "@/lib/program";
+import { THURSDAY_DAY } from "@/lib/thursday-day";
 import { gradeRun, weekStartKey } from "@/lib/run";
 import { useAppStore } from "@/lib/store";
 import {
@@ -28,11 +29,17 @@ export const Route = createFileRoute("/")({ component: Home });
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
+function todayProgram(closed: boolean, wd: number) {
+  if (closed) return CLOSED_ALT;
+  if (wd === 4) return THURSDAY_DAY;
+  return dayByWeekday(wd);
+}
+
 function Home() {
   const [notesOpen, setNotesOpen] = useState(false);
   const closed = isLcsdClosed();
   const wd = weekdayHkt();
-  const day = closed ? CLOSED_ALT : dayByWeekday(wd);
+  const day = todayProgram(closed, wd);
   const profile = useAppStore((s) => s.profile);
   const weights = useAppStore((s) => s.weights);
   const scans = useAppStore((s) => s.scans);
@@ -120,12 +127,12 @@ function Home() {
       <Card className="mb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs text-muted">每週一次 · 隨意一日</p>
+            <p className="text-xs text-muted">每週一次 · 體能分析</p>
             <h2 className="mt-1 font-display text-xl">9 分鐘耐力跑</h2>
             <p className="mt-2 text-sm text-muted">
               {weekRun
                 ? `本週 ${(weekRun.meters / 1000).toFixed(2)} km · ${gradeRun(weekRun.meters)}`
-                : "香港體適能跑。測完先有有氧分析。唔取代今日主課。"}
+                : "香港體適能跑。只作體能分析，唔取代今日主課，唔當帶氧熱身。"}
             </p>
           </div>
         </div>
@@ -194,7 +201,7 @@ function Home() {
 function NotesModal({ onClose }: { onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-3 pb-3 pt-12 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-x-0 bottom-0 z-50 flex items-end justify-center bg-black/60 px-3 pb-3 pt-12 backdrop-blur-sm sm:items-center sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-label="場地備註"
@@ -209,28 +216,18 @@ function NotesModal({ onClose }: { onClose: () => void }) {
             <StickyNote className="size-4 text-accent" />
             場地備註
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1 text-muted transition hover:bg-surface-2"
-            aria-label="關閉"
-          >
+          <button type="button" onClick={onClose} className="rounded-full p-1 text-muted" aria-label="關閉">
             <X className="size-4" />
           </button>
         </div>
         <ol className="max-h-[70dvh] space-y-3 overflow-y-auto px-5 py-4 text-sm leading-relaxed">
           {LCSD_NOTES.map((n, i) => (
             <li key={i} className="flex gap-3 text-muted">
-              <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs tabular-nums text-fg">
-                {i + 1}
-              </span>
+              <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs tabular-nums text-fg">{i + 1}</span>
               <span className="flex-1">{n}</span>
             </li>
           ))}
         </ol>
-        <div className="border-t border-border bg-surface px-5 py-3 text-center text-xs text-subtle">
-          撳空白處或 ✕ 關閉
-        </div>
       </div>
     </div>
   );
@@ -238,7 +235,7 @@ function NotesModal({ onClose }: { onClose: () => void }) {
 
 function WeekStrip({ current }: { current: number }) {
   const names = ["日", "一", "二", "三", "四", "五", "六"];
-  const labels = ["恢復", "速度", "旋轉", "單腳", "有氧", "刺拳", "移動"];
+  const labels = ["恢復", "速度", "旋轉", "單腳", "環繞", "刺拳", "移動"];
   return (
     <div className="grid grid-cols-7 gap-1">
       {names.map((n, i) => (
@@ -261,9 +258,7 @@ function countStreak(dates: string[], today: string) {
   let n = 0;
   const cursor = new Date(`${today}T12:00:00+08:00`);
   while (n < 90) {
-    const key = cursor.toLocaleDateString("en-CA", {
-      timeZone: "Asia/Hong_Kong",
-    });
+    const key = cursor.toLocaleDateString("en-CA", { timeZone: "Asia/Hong_Kong" });
     if (!set.has(key)) break;
     n += 1;
     cursor.setDate(cursor.getDate() - 1);
