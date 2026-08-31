@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Shell } from "@/components/shell";
 import { Card } from "@/components/ui/card";
-import { DAYS, CHAO_COMMENT, totalSeconds } from "@/lib/program";
+import { DAYS, totalSeconds } from "@/lib/program";
+import { CHAO_COMMENT } from "@/lib/chao-comment";
 import { formatClock, weekdayHkt } from "@/lib/utils";
 
 export const Route = createFileRoute("/week")({ component: WeekPage });
