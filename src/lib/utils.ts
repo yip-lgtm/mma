@@ -47,33 +47,33 @@ export function formatClock(totalSec: number) {
   return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
 }
 
-/** LCSD fitness rooms typically close 1st & 3rd Tuesday of the month. */
+/** 農曆年初一（第二天由初一 +1 推出） */
+const CNY_DAY1 = [
+  "2025-01-29",
+  "2026-02-17",
+  "2027-02-06",
+  "2028-01-26",
+  "2029-02-13",
+  "2030-02-03",
+];
+
+function nextDayKey(key: string) {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + 1);
+  const yy = dt.getUTCFullYear();
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getUTCDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
+const GYM_CLOSED = new Set(
+  CNY_DAY1.flatMap((d1) => [d1, nextDayKey(d1)]),
+);
+
+/** 健身室 365 開放；只休農曆年初一、初二。 */
 export function isLcsdClosed(date = new Date()) {
-  const weekday = weekdayHkt(date);
-  if (weekday !== 2) return false;
-  const day = Number(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: "Asia/Hong_Kong",
-      day: "numeric",
-    }).format(date),
-  );
-  const y = Number(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: "Asia/Hong_Kong",
-      year: "numeric",
-    }).format(date),
-  );
-  const mo = Number(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: "Asia/Hong_Kong",
-      month: "numeric",
-    }).format(date),
-  );
-  const first = new Date(Date.UTC(y, mo - 1, 1));
-  const firstWeekday = first.getUTCDay();
-  const firstTue = ((2 - firstWeekday + 7) % 7) + 1;
-  const thirdTue = firstTue + 14;
-  return day === firstTue || day === thirdTue;
+  return GYM_CLOSED.has(hktDateKey(date));
 }
 
 export function mifflinStJeor(opts: {
