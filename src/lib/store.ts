@@ -31,6 +31,7 @@ type State = {
   sessions: SessionEntry[];
   runs: RunTest[];
   reports: ReportEntry[];
+  remarks: Record<string, string>;
   lastKg: number | null;
   setProfile: (p: Partial<Profile>) => void;
   logWeight: (date: string, kg: number) => void;
@@ -40,6 +41,7 @@ type State = {
   logSession: (entry: SessionEntry) => void;
   logRun: (entry: RunTest) => void;
   saveReport: (entry: ReportEntry) => void;
+  saveRemark: (date: string, text: string) => void;
 };
 
 function persistMerge(persisted: unknown, current: State): State {
@@ -53,6 +55,7 @@ function persistMerge(persisted: unknown, current: State): State {
     scans: p.scans ?? current.scans,
     weights: p.weights ?? current.weights,
     reports: p.reports ?? [],
+    remarks: p.remarks ?? {},
   };
 }
 
@@ -66,38 +69,31 @@ export const useAppStore = create<State>()(
       sessions: [],
       runs: [],
       reports: [],
+      remarks: {},
       lastKg: SAMPLE_SCAN.kg,
-      setProfile: (p) =>
-        set((s) => ({ profile: { ...s.profile, ...p } })),
+      setProfile: (p) => set((s) => ({ profile: { ...s.profile, ...p } })),
       logWeight: (date, kg) =>
         set((s) => {
           const rest = s.weights.filter((w) => w.date !== date);
-          const weights = [...rest, { date, kg }].sort((a, b) =>
-            a.date.localeCompare(b.date),
-          );
+          const weights = [...rest, { date, kg }].sort((a, b) => a.date.localeCompare(b.date));
           return { weights, lastKg: kg };
         }),
       logScan: (scan) =>
         set((s) => {
-          const scans = [
-            ...s.scans.filter((x) => x.date !== scan.date),
-            scan,
-          ].sort((a, b) => a.date.localeCompare(b.date));
+          const scans = [...s.scans.filter((x) => x.date !== scan.date), scan].sort((a, b) =>
+            a.date.localeCompare(b.date),
+          );
           const rest = s.weights.filter((w) => w.date !== scan.date);
-          const weights = [...rest, { date: scan.date, kg: scan.kg }].sort(
-            (a, b) => a.date.localeCompare(b.date),
+          const weights = [...rest, { date: scan.date, kg: scan.kg }].sort((a, b) =>
+            a.date.localeCompare(b.date),
           );
           return { scans: scans.slice(-60), weights, lastKg: scan.kg };
         }),
-      addFood: (item) =>
-        set((s) => ({ foods: [...s.foods, item].slice(-400) })),
-      removeFood: (id) =>
-        set((s) => ({ foods: s.foods.filter((f) => f.id !== id) })),
+      addFood: (item) => set((s) => ({ foods: [...s.foods, item].slice(-400) })),
+      removeFood: (id) => set((s) => ({ foods: s.foods.filter((f) => f.id !== id) })),
       logSession: (entry) =>
         set((s) => {
-          const rest = s.sessions.filter(
-            (x) => !(x.date === entry.date && x.dayId === entry.dayId),
-          );
+          const rest = s.sessions.filter((x) => !(x.date === entry.date && x.dayId === entry.dayId));
           return { sessions: [...rest, entry].slice(-90) };
         }),
       logRun: (entry) =>
@@ -105,18 +101,15 @@ export const useAppStore = create<State>()(
           const week = weekStartKey(entry.date);
           const rest = s.runs.filter((r) => weekStartKey(r.date) !== week);
           return {
-            runs: [...rest, entry]
-              .sort((a, b) => a.date.localeCompare(b.date))
-              .slice(-52),
+            runs: [...rest, entry].sort((a, b) => a.date.localeCompare(b.date)).slice(-52),
           };
         }),
       saveReport: (entry) =>
         set((s) => ({
-          reports: [entry, ...s.reports.filter((r) => r.date !== entry.date)].slice(
-            0,
-            12,
-          ),
+          reports: [entry, ...s.reports.filter((r) => r.date !== entry.date)].slice(0, 12),
         })),
+      saveRemark: (date, text) =>
+        set((s) => ({ remarks: { ...s.remarks, [date]: text } })),
     }),
     { name: "dieci-train-v2", merge: persistMerge },
   ),
